@@ -1,14 +1,16 @@
 ﻿// ==UserScript==
 // @name        OPR_NominationListManagement
 // @namespace   asldufhiu32hr9283hf83123
-// @include     https://wayfarer.nianticlabs.com/nominations
+// @include     https://wayfarer.nianticlabs.com/nominations*
 // @author      @lokpro
+// @updateURL https://github.com/lokpro/OPR_NominationListManagement/raw/master/OPR_NominationListToWatermeter.user.js
+// @downloadURL https://github.com/lokpro/OPR_NominationListManagement/raw/master/OPR_NominationListToWatermeter.user.js
 // @version     0.1
 // @grant       none
 // ==/UserScript==
 
 /*
-v0.1 ?/10/2019
+v0.1 17/10/2019
 added hyperlinks to watermeter
 */
 
@@ -88,21 +90,4 @@ var interval = setInterval( function(){
 	  return tReturn;
 	};
 
-//	nomCtrl.arrangeNomList2 = nomCtrl.arrangeNomList;
-//	nomCtrl.arrangeNomList = function() {
-//	  var tReturn = nomCtrl.arrangeNomList2.apply( nomCtrl.arrangeNomList2, arguments);
-//	  modifyDisplayList();
-//	  return tReturn;
-//	};
-//	
-//	nomCtrl.applySearchFilter2 = nomCtrl.applySearchFilter;
-//	nomCtrl.applySearchFilter = function() {
-//	  var tReturn = nomCtrl.applySearchFilter2.apply( nomCtrl.applySearchFilter2, arguments);
-//	  alert( "hi" );
-//	  return tReturn;
-//	};
 }, 100 );
-
-//setInterval( function(){
-//	document.title = document.querySelectorAll( "#nom-table .nomination" ).length;
-//},10 );
