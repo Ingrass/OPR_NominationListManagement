@@ -3,8 +3,8 @@
 // @namespace   asldufhiu32hr9283hf83123
 // @include     https://wayfarer.nianticlabs.com/nominations*
 // @author      @lokpro
-// @updateURL https://github.com/lokpro/OPR_NominationListManagement/raw/master/OPR_NominationListManagement.user.js
-// @downloadURL https://github.com/lokpro/OPR_NominationListManagement/raw/master/OPR_NominationListManagement.user.js
+// @updateURL https://github.com/Ingrass/OPR_NominationListManagement/raw/master/OPR_NominationListManagement.user.js
+// @downloadURL https://github.com/Ingrass/OPR_NominationListManagement/raw/master/OPR_NominationListManagement.user.js
 // @version     0.1
 // @grant       none
 // ==/UserScript==
