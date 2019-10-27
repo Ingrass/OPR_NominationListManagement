@@ -66,7 +66,7 @@ function imgUrlToHashId( url ){
 
 function modifyDisplayList(){
 	setTimeout( function(){
-		var BASEURL = "http://brainstorming.azurewebsites.net/watermeter.html";
+		var BASEURL = "https://brainstorming.azurewebsites.net/watermeter.html";
 
 		var divs = document.querySelectorAll( "#nom-table .nomination" );
 
@@ -264,7 +264,7 @@ window.viewNominationsInCategories = function(){
 			nomBox.appendChild( button_watermeter );
 			button_watermeter.innerText = "水表";
 			button_watermeter.className = "button";
-			button_watermeter.href = "http://brainstorming.azurewebsites.net/watermeter.html#" + nomBox.id;
+			button_watermeter.href = "https://brainstorming.azurewebsites.net/watermeter.html#" + nomBox.id;
 			button_watermeter.setAttribute('target', 'watermeter0');
     }
 	};
