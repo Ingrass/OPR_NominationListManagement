@@ -1,20 +1,31 @@
-﻿// ==UserScript==
+// ==UserScript==
 // @name        OPR_NominationListManagement
 // @namespace   asldufhiu32hr9283hf83123
 // @include     https://wayfarer.nianticlabs.com/nominations*
 // @author      @lokpro
 // @updateURL https://github.com/Ingrass/OPR_NominationListManagement/raw/master/OPR_NominationListManagement.user.js
 // @downloadURL https://github.com/Ingrass/OPR_NominationListManagement/raw/master/OPR_NominationListManagement.user.js
-// @version     0.2
+// @version     0.3
 // @grant       none
 // ==/UserScript==
 
 /*
+v0.3 28/10/2019
+加入功能: 用分類的方式瀏覽；做了個框架，功能待加
+
 v0.2 27/10/2019
 加入功能: 把數據轉成 table，可copy到excel
 
 v0.1 17/10/2019
 added hyperlinks to watermeter
+*/
+
+/* to-do
+- 可選取
+- 展示在一個map上
+- 批量查水表
+- 持續改善 ui
+歡迎加入開發
 */
 
 var css = " \
@@ -68,7 +79,6 @@ function modifyDisplayList(){
 				continue;
 			}
 			divs[i].innerHTML = "<div class='customButtonArea'>"
-				//+"<a class='customButton button' target='watermeter0' href='"+BASEURL+hashId+"'>水表</a> \
 				+"<button class='customButton button' onclick='window.open(\""+BASEURL+hashId+"\", \"watermeter0\"); event.stopPropagation();'>水表</button>"
 				+"</div>" + divs[i].innerHTML;
 		}
@@ -79,14 +89,12 @@ var interval = setInterval( function(){
 	// wait for var available
 	try {
 		window.nomCtrl = angular.element( document.querySelector("[ng-controller='NominationsController as nomCtrl']") ).scope().nomCtrl;
-		//var x = nomCtrl.nomList.length;
 		var x = nomCtrl.datasource.get;
 	} catch (e) {
 		return;
 	}
 	// OK
 	clearInterval( interval );
-	//var scrollController = nomCtrl.scrollController;
 
 	nomCtrl.reload2 = nomCtrl.datasource.get;
 	nomCtrl.datasource.get = function() {
@@ -94,7 +102,6 @@ var interval = setInterval( function(){
 	  modifyDisplayList();
 	  return tReturn;
 	};
-
 }, 100 );
 
 window.myListAllNominations = function(){
@@ -142,14 +149,14 @@ window.myListAllNominations = function(){
 	table.appendChild(tbody);
 
 	var css = " \
-	table{ \
-	table-layout: fixed; \
-	} \
-	td, th { \
-		border 1px solid black; \
-		max-width: 300px; \
-		overflow: ellipsis; \
-	} \
+table{ \
+table-layout: fixed; \
+} \
+td, th { \
+	border 1px solid black; \
+	max-width: 300px; \
+	overflow: ellipsis; \
+} \
 	";
 
 	var style = document.createElement("style");
@@ -164,3 +171,161 @@ window.myListAllNominations = function(){
 
 document.querySelector(".header-container").innerHTML +=
 	"<button class='HeadCustomButton button' onclick='window.myListAllNominations();'>Export Table</button>";
+
+//===================================
+
+window.viewNominationsInCategories = function(){
+
+	var w = window.open();
+	w.document.title = nomCtrl.nomList.length;
+
+	//=== parse nomList
+	function categoriseNoList( nomList ){
+		var d = {
+			status:{},
+			upgraded:{},
+		};
+
+		for( var iNom=0; iNom<nomList.length; iNom++ ){
+			var nom = nomList[iNom];
+
+			d.status[nom.status] = d.status[nom.status] || [];
+			d.status[nom.status].push( nom );
+
+			d.upgraded[nom.upgraded] = d.upgraded[nom.upgraded] || [];
+			d.upgraded[nom.upgraded].push( nom );
+		}
+
+		// === sort all by "day"
+		for( var iL1 in d ){
+			for( var iL2 in d[iL1] ){
+				d[iL1][iL2].sort( function(a,b){ a.day<b.day?1:-1 } );
+			}
+		}
+
+		return d;
+	}
+
+	var d = categoriseNoList( nomCtrl.nomList );
+	w.d = d;
+	var root = document.createElement("div");
+
+	//=== menu
+	for( var iL1 in d ){
+		var level1Container = document.createElement("div");
+		root.appendChild( level1Container );
+		level1Container.className = "menu L1 container";
+
+		var level1Button = document.createElement("div");
+		level1Container.appendChild( level1Button );
+		level1Button.className = "menu L1 button";
+		level1Button.innerText = iL1;
+		
+		var level2Container = document.createElement("div");
+		level1Container.appendChild( level2Container );
+		level2Container.className = "menu L2 container";
+
+		for( var iL2 in d[iL1] ){
+			var level2Button = document.createElement("div");
+			level2Container.appendChild( level2Button );
+			level2Button.className = "menu L2 button";
+			level2Button.innerText = iL2 + " (" + d[iL1][iL2].length + ")";
+			level2Button.setAttribute('onclick', "showList('"+iL1+"."+iL2+"', 0)");
+		}
+	}
+
+	//=== list noms
+	var displayContainer = document.createElement("div");
+	root.appendChild( displayContainer );
+	displayContainer.className = "displayContainer";
+
+	w.showList = function( key, level ){
+		var doc = w.document;
+		var displayContainer = doc.querySelector(".displayContainer");
+		displayContainer.innerHTML = '';
+		var list = eval( "d."+key );
+		for (var iNom=0; iNom<list.length; iNom++ ) {
+			var nom = list[iNom];
+			
+			var nomBox = doc.createElement("div");
+			displayContainer.appendChild( nomBox );
+			nomBox.className = "nomBox";
+			nomBox.id = imgUrlToHashId( nom.imageUrl );
+
+			var img = doc.createElement("img");
+			nomBox.appendChild( img );
+			img.src = nom.imageUrl + "=s80";
+
+			var title = doc.createElement("div");
+			nomBox.appendChild( title );
+			title.innerText = nom.title;
+			
+			var button_watermeter = doc.createElement("a");
+			nomBox.appendChild( button_watermeter );
+			button_watermeter.innerText = "水表";
+			button_watermeter.className = "button";
+			button_watermeter.href = "http://brainstorming.azurewebsites.net/watermeter.html#" + nomBox.id;
+			button_watermeter.setAttribute('target', 'watermeter0');
+    }
+	};
+
+	var css = " \
+body{ \
+	background-color: #222222; \
+} \
+div.menu { \
+	padding: 4px 7px; \
+	display: inline-block; \
+} \
+.container{ \
+	border: 1px solid #226767; \
+} \
+.menu.L1.container{ \
+	margin-right: 20px; \
+} \
+.button{ \
+	color: white; \
+	background-color: #226767; \
+	border: 3px solid #5BC5C5; \
+	cursor: pointer; \
+} \
+.menu.button{ \
+	margin: 3px; \
+} \
+.displayContainer{ \
+	border: 1px solid #226767; \
+	height: 80%; \
+	margin-top: 5px; \
+	overflow-y: scroll; \
+} \
+.nomBox{ \
+	display: inline-block; \
+	border: 1px solid #226767; \
+	min-height: 100px; \
+	width: 100px; \
+	padding: 2px; \
+	margin: 3px; \
+	vertical-align: top; \
+	text-align: center; \
+} \
+.nomBox img{ \
+	max-width: 70%; \
+	max-height: 50%; \
+	min-width: 50%; \
+} \
+.nomBox *{ \
+	margin: 3px; \
+	color: white; \
+} \
+	";
+
+	var style = document.createElement("style");
+	style.type = "text/css";
+	style.appendChild(document.createTextNode(css));
+
+	w.document.body.appendChild( style );
+	w.document.body.appendChild( root );
+};
+
+document.querySelector(".header-container").innerHTML +=
+	"<button class='HeadCustomButton button' onclick='window.viewNominationsInCategories();'>View All (Beta)</button>";
