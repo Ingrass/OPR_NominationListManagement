@@ -5,11 +5,14 @@
 // @author      @lokpro
 // @updateURL https://github.com/Ingrass/OPR_NominationListManagement/raw/master/OPR_NominationListManagement.user.js
 // @downloadURL https://github.com/Ingrass/OPR_NominationListManagement/raw/master/OPR_NominationListManagement.user.js
-// @version     0.1
+// @version     0.2
 // @grant       none
 // ==/UserScript==
 
 /*
+v0.2 27/10/2019
+加入功能: 把數據轉成 table，可copy到excel
+
 v0.1 17/10/2019
 added hyperlinks to watermeter
 */
@@ -34,6 +37,9 @@ width: 100%; \
 display: block; \
 margin: 0; \
 text-align: center; \
+} \
+.HeadCustomButton{ \
+float:left \
 } \
 " ;
 
@@ -85,9 +91,76 @@ var interval = setInterval( function(){
 	nomCtrl.reload2 = nomCtrl.datasource.get;
 	nomCtrl.datasource.get = function() {
 	  var tReturn = nomCtrl.reload2.apply( nomCtrl.reload2, arguments);
-		document.title = document.querySelectorAll( "#nom-table .nomination" ).length;
 	  modifyDisplayList();
 	  return tReturn;
 	};
 
 }, 100 );
+
+window.myListAllNominations = function(){
+	var COLUMNS = [
+		//"order",
+		"day",
+		//"id",
+		"imageUrl",
+		"title",
+		"description",
+		"lat",
+		"lng",
+		"state",
+		"city",
+		"status",
+		"upgraded",
+		"nextUpgrade",
+	];
+
+	var table = document.createElement('table');
+	var thead = document.createElement('thead');
+	var tbody = document.createElement('tbody');
+
+	var tr = document.createElement('tr');
+  for (var col= 0; col<COLUMNS.length; col++) {
+		var th = document.createElement('th');
+		th.appendChild( document.createTextNode( COLUMNS[col] ) );
+		tr.appendChild(th);
+	}
+	thead.appendChild( tr );
+
+	for( var iNom=0; iNom<nomCtrl.nomList.length; iNom++ ){
+		var nom = nomCtrl.nomList[iNom];
+
+		var tr = document.createElement('tr');
+    for (var col= 0; col<COLUMNS.length; col++) {
+			var td = document.createElement('td');
+			td.appendChild( document.createTextNode( nom[ COLUMNS[col] ] ) );
+			tr.appendChild(td);
+		}
+		tbody.appendChild( tr );
+	}
+
+	table.appendChild(thead);
+	table.appendChild(tbody);
+
+	var css = " \
+	table{ \
+	table-layout: fixed; \
+	} \
+	td, th { \
+		border 1px solid black; \
+		max-width: 300px; \
+		overflow: ellipsis; \
+	} \
+	";
+
+	var style = document.createElement("style");
+	style.type = "text/css";
+	style.appendChild(document.createTextNode(css));
+
+	var w = window.open();
+	w.document.title = nomCtrl.length;
+	w.document.body.appendChild( table );
+	w.document.body.appendChild( style );
+};
+
+document.querySelector(".header-container").innerHTML +=
+	"<button class='HeadCustomButton button' onclick='window.myListAllNominations();'>Export Table</button>";
