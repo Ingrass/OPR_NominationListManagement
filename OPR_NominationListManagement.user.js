@@ -5,11 +5,14 @@
 // @author      @lokpro
 // @updateURL https://github.com/Ingrass/OPR_NominationListManagement/raw/master/OPR_NominationListManagement.user.js
 // @downloadURL https://github.com/Ingrass/OPR_NominationListManagement/raw/master/OPR_NominationListManagement.user.js
-// @version     0.3
+// @version     0.3.1
 // @grant       none
 // ==/UserScript==
 
 /*
+v0.3.1 28/10/2019
+分類瀏覽 加個日期
+
 v0.3 28/10/2019
 加入功能: 用分類的方式瀏覽；做了個框架，功能待加
 
@@ -259,6 +262,10 @@ window.viewNominationsInCategories = function(){
 			var title = doc.createElement("div");
 			nomBox.appendChild( title );
 			title.innerText = nom.title;
+
+			var date = doc.createElement("div");
+			nomBox.appendChild( date );
+			date.innerText = nom.day;
 			
 			var button_watermeter = doc.createElement("a");
 			nomBox.appendChild( button_watermeter );
