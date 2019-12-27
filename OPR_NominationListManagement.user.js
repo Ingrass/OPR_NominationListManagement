@@ -5,11 +5,14 @@
 // @author      @lokpro
 // @updateURL https://github.com/Ingrass/OPR_NominationListManagement/raw/master/OPR_NominationListManagement.user.js
 // @downloadURL https://github.com/Ingrass/OPR_NominationListManagement/raw/master/OPR_NominationListManagement.user.js
-// @version     0.3.1
+// @version     0.3.2
 // @grant       none
 // ==/UserScript==
 
 /*
+v0.3.2 27/12/2019
+更動頭頂 2 buttons位置以免蓋住系統的buttons
+
 v0.3.1 28/10/2019
 分類瀏覽 加個日期
 
