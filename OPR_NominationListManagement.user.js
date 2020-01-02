@@ -5,13 +5,16 @@
 // @author      @lokpro
 // @updateURL https://github.com/Ingrass/OPR_NominationListManagement/raw/master/OPR_NominationListManagement.user.js
 // @downloadURL https://github.com/Ingrass/OPR_NominationListManagement/raw/master/OPR_NominationListManagement.user.js
-// @version     0.3.2
+// @version     0.3.3
 // @grant       none
 // ==/UserScript==
 
 /*
+v0.3.3 2/Jan/2020
+added "ALL" category
+
 v0.3.2 27/12/2019
-更動頭頂 2 buttons位置以免蓋住系統的buttons
+更動頭頂2 buttons位置以免蓋住系統的buttons
 
 v0.3.1 28/10/2019
 分類瀏覽 加個日期
@@ -175,7 +178,7 @@ td, th { \
 	w.document.body.appendChild( style );
 };
 
-document.querySelector(".header-container").innerHTML +=
+document.querySelector(".nomination-header").innerHTML +=
 	"<button class='HeadCustomButton button' onclick='window.myListAllNominations();'>Export Table</button>";
 
 //===================================
@@ -186,15 +189,18 @@ window.viewNominationsInCategories = function(){
 	w.document.title = nomCtrl.nomList.length;
 
 	//=== parse nomList
-	function categoriseNoList( nomList ){
+	function categoriseNomList( nomList ){
 		var d = {
+			ALL:[],
 			status:{},
 			upgraded:{},
 		};
 
 		for( var iNom=0; iNom<nomList.length; iNom++ ){
 			var nom = nomList[iNom];
-
+			
+			d.ALL.push( nom );
+			
 			d.status[nom.status] = d.status[nom.status] || [];
 			d.status[nom.status].push( nom );
 
@@ -204,15 +210,19 @@ window.viewNominationsInCategories = function(){
 
 		// === sort all by "day"
 		for( var iL1 in d ){
-			for( var iL2 in d[iL1] ){
-				d[iL1][iL2].sort( function(a,b){ a.day<b.day?1:-1 } );
+			if( Array.isArray( d[iL1] ) ){
+				d[iL1].sort( function(a,b){ a.day<b.day?1:-1 } );
+			}else{
+				for( var iL2 in d[iL1] ){
+					d[iL1][iL2].sort( function(a,b){ a.day<b.day?1:-1 } );
+				}
 			}
 		}
 
 		return d;
 	}
 
-	var d = categoriseNoList( nomCtrl.nomList );
+	var d = categoriseNomList( nomCtrl.nomList );
 	w.d = d;
 	var root = document.createElement("div");
 
@@ -225,18 +235,26 @@ window.viewNominationsInCategories = function(){
 		var level1Button = document.createElement("div");
 		level1Container.appendChild( level1Button );
 		level1Button.className = "menu L1 button";
-		level1Button.innerText = iL1;
 		
-		var level2Container = document.createElement("div");
-		level1Container.appendChild( level2Container );
-		level2Container.className = "menu L2 container";
+		
+		if( Array.isArray( d[iL1] ) ){
+			level1Button.setAttribute('onclick', "showList('"+iL1+"', 0)");
+			level1Button.innerText = iL1 + " (" + d[iL1].length + ")";
+			
+		}else{
+			level1Button.innerText = iL1;
+			
+			var level2Container = document.createElement("div");
+			level1Container.appendChild( level2Container );
+			level2Container.className = "menu L2 container";
 
-		for( var iL2 in d[iL1] ){
-			var level2Button = document.createElement("div");
-			level2Container.appendChild( level2Button );
-			level2Button.className = "menu L2 button";
-			level2Button.innerText = iL2 + " (" + d[iL1][iL2].length + ")";
-			level2Button.setAttribute('onclick', "showList('"+iL1+"."+iL2+"', 0)");
+			for( var iL2 in d[iL1] ){
+				var level2Button = document.createElement("div");
+				level2Container.appendChild( level2Button );
+				level2Button.className = "menu L2 button";
+				level2Button.innerText = iL2 + " (" + d[iL1][iL2].length + ")";
+				level2Button.setAttribute('onclick', "showList('"+iL1+"."+iL2+"', 0)");
+			}
 		}
 	}
 
@@ -276,7 +294,7 @@ window.viewNominationsInCategories = function(){
 			button_watermeter.className = "button";
 			button_watermeter.href = "https://brainstorming.azurewebsites.net/watermeter.html#" + nomBox.id;
 			button_watermeter.setAttribute('target', 'watermeter0');
-    }
+		}
 	};
 
 	var css = " \
@@ -337,5 +355,5 @@ div.menu { \
 	w.document.body.appendChild( root );
 };
 
-document.querySelector(".header-container").innerHTML +=
+document.querySelector(".nomination-header").innerHTML +=
 	"<button class='HeadCustomButton button' onclick='window.viewNominationsInCategories();'>View All (Beta)</button>";
