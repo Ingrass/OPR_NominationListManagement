@@ -274,7 +274,7 @@ NLM.CUSTOM.Class_CustomView.prototype.createMenu = function(){
 				level2Container.appendChild( level2Button );
 				level2Button.className = "menu L2 button";
 				level2Button.innerText = iL2 + " (" + data[iL1][iL2].length + ")";
-				level2Button.setAttribute('onclick', "customView.displayContainer.showNomList('"+iL1+"."+iL2+"')");
+				level2Button.setAttribute('onclick', "customView.displayContainer.showNomList('"+iL1+"','"+iL2+"')");
 			}
 		}
 	}
@@ -295,12 +295,15 @@ NLM.CUSTOM.Class_DisplayContainer = function( customView ){
 	return this;
 };
 
-NLM.CUSTOM.Class_DisplayContainer.prototype.showNomList = function( key ){
+NLM.CUSTOM.Class_DisplayContainer.prototype.showNomList = function( key1, key2=null ){
 	var document = this.customView.doc;
 	
 	var displayContainer = document.querySelector(".displayContainer");
 	displayContainer.innerHTML = '';
-	var list = eval( "NLM.CUSTOM.customView.data."+key );
+	var list = this.customView.data[key1];
+	if( key2 !== null ){
+		list = list[key2];
+	}
 	for (var iNom=0; iNom<list.length; iNom++ ) {
 		var nom = list[iNom];
 		this.showNomination( nom );
