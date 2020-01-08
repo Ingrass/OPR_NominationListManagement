@@ -5,11 +5,14 @@
 // @author      @lokpro
 // @updateURL https://github.com/Ingrass/OPR_NominationListManagement/raw/master/OPR_NominationListManagement.user.js
 // @downloadURL https://github.com/Ingrass/OPR_NominationListManagement/raw/master/OPR_NominationListManagement.user.js
-// @version     0.3.3
+// @version     0.3.4
 // @grant       none
 // ==/UserScript==
 
 /*
+v0.3.4 8/Jan/2020
+- added "upgrade next" categroy
+
 v0.3.3 7/Jan/2020
 - rewritten code structure, no functional changes
 
@@ -184,7 +187,11 @@ NLM.CUSTOM.categoriseNomList = function( nomList ){
 	var d = {
 		ALL:[],
 		status:{},
-		upgraded:{},
+		upgraded:{
+			true:[],
+			false:[],
+			next:[],
+		},
 	};
 
 	for( var iNom=0; iNom<nomList.length; iNom++ ){
@@ -195,8 +202,11 @@ NLM.CUSTOM.categoriseNomList = function( nomList ){
 		d.status[nom.status] = d.status[nom.status] || [];
 		d.status[nom.status].push( nom );
 
-		d.upgraded[nom.upgraded] = d.upgraded[nom.upgraded] || [];
 		d.upgraded[nom.upgraded].push( nom );
+		
+		if( nom.nextUpgrade ){
+			d.upgraded.next.push( nom );
+		}
 	}
 
 	// === sort all by "day"
