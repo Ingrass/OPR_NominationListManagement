@@ -142,15 +142,16 @@ NLM.exportTable_COLUMNS = [
 ];
 
 NLM.exportTable = function(){
-
+	var COLUMNS = NLM.exportTable_COLUMNS;
+	
 	var table = document.createElement('table');
 	var thead = document.createElement('thead');
 	var tbody = document.createElement('tbody');
 
 	var tr = document.createElement('tr');
-	for (var col= 0; col<exportTable_COLUMNS.length; col++) {
+	for (var col= 0; col<COLUMNS.length; col++) {
 		var th = document.createElement('th');
-		th.appendChild( document.createTextNode( exportTable_COLUMNS[col] ) );
+		th.appendChild( document.createTextNode( COLUMNS[col] ) );
 		tr.appendChild(th);
 	}
 	thead.appendChild( tr );
@@ -159,9 +160,9 @@ NLM.exportTable = function(){
 		var nom = nomCtrl.nomList[iNom];
 
 		var tr = document.createElement('tr');
-    for (var col= 0; col<exportTable_COLUMNS.length; col++) {
+    for (var col= 0; col<COLUMNS.length; col++) {
 			var td = document.createElement('td');
-			td.appendChild( document.createTextNode( nom[ exportTable_COLUMNS[col] ] ) );
+			td.appendChild( document.createTextNode( nom[ COLUMNS[col] ] ) );
 			tr.appendChild(td);
 		}
 		tbody.appendChild( tr );
