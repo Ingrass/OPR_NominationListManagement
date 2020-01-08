@@ -10,23 +10,26 @@
 // ==/UserScript==
 
 /*
+v0.3.3 7/Jan/2020
+- rewritten code structure, no functional changes
+
 v0.3.3 2/Jan/2020
-added "ALL" category
+- added "ALL" category
 
 v0.3.2 27/12/2019
-更動頭頂2 buttons位置以免蓋住系統的buttons
+- 更動頭頂2 buttons位置以免蓋住系統的buttons
 
 v0.3.1 28/10/2019
-分類瀏覽 加個日期
+- 分類瀏覽 加個日期
 
 v0.3 28/10/2019
-加入功能: 用分類的方式瀏覽；做了個框架，功能待加
+- 加入功能: 用分類的方式瀏覽；做了個框架，功能待加
 
 v0.2 27/10/2019
-加入功能: 把數據轉成 table，可copy到excel
+- 加入功能: 把數據轉成 table，可copy到excel
 
 v0.1 17/10/2019
-added hyperlinks to watermeter
+- added hyperlinks to watermeter
 */
 
 /* to-do
@@ -37,43 +40,58 @@ added hyperlinks to watermeter
 歡迎加入開發
 */
 
-var css = " \
-#nom-table { \
-margin-left: 20%; \
-} \
-.nomination.card{ \
-position: relative; \
-overflow: visible; \
-} \
-.customButtonArea { \
-position: absolute; \
-top: 0; \
-left: -25%; \
-width: 25%; \
-padding-right: 2px; \
-} \
-.customButton{ \
-width: 100%; \
-display: block; \
-margin: 0; \
-text-align: center; \
-} \
-.HeadCustomButton{ \
-float:left \
-} \
-" ;
+window.NLM = {}; // main page
+NLM.CUSTOM = {}; // custom view
+NLM.css = {};
 
-var node = document.createElement("style");
-node.type = "text/css";
-node.appendChild(document.createTextNode(css));
-document.getElementsByTagName("head")[0]
-	.appendChild(node);
-
-function imgUrlToHashId( url ){
-	return url.replace( /=.{1,10}$|[^a-zA-Z0-9]/g, '' ).slice(- 10).toLowerCase();
+NLM.imgUrlToHashId = function( imgUrl ){
+	return imgUrl.replace( /=.{1,10}$|[^a-zA-Z0-9]/g, '' ).slice(- 10).toLowerCase();
 }
 
-function modifyDisplayList(){
+NLM.appendCSS = function( css, toNode ){
+	var style = document.createElement("style");
+	style.type = "text/css";
+	style.appendChild( document.createTextNode(css) );
+	toNode.appendChild( style );
+};
+
+NLM.css.main = " \
+	#nom-table { \
+	margin-left: 20%; \
+	} \
+	.nomination.card{ \
+	position: relative; \
+	overflow: visible; \
+	} \
+	.customButtonArea { \
+	position: absolute; \
+	top: 0; \
+	left: -25%; \
+	width: 25%; \
+	padding-right: 2px; \
+	} \
+	.customButton{ \
+	width: 100%; \
+	display: block; \
+	margin: 0; \
+	text-align: center; \
+	} \
+	.HeadCustomButton{ \
+	float:left \
+	} \
+" ;
+
+NLM.BUTTONS = [
+{ onclick:"NLM.exportTable();", text:"Export Table" },
+{ onclick:"NLM.openCustomView();", text:"Custom View (Beta)" },
+];
+
+NLM.addButton = function( obj ){
+	document.querySelector(".nomination-header").innerHTML +=
+		"<button class='HeadCustomButton button' onclick='"+obj.onclick+"'>"+obj.text+"</button>";
+};
+
+NLM.modifyDisplayList = function(){
 	setTimeout( function(){
 		var BASEURL = "https://brainstorming.azurewebsites.net/watermeter.html";
 
@@ -82,7 +100,7 @@ function modifyDisplayList(){
 		var hashIds = [];
 		
 		for( var i=0; i<divs.length; i++ ){
-			var hashId = "#"+ imgUrlToHashId( divs[i].querySelector("img").src );
+			var hashId = "#"+ NLM.imgUrlToHashId( divs[i].querySelector("img").src );
 			
 			if( divs[i].querySelectorAll(".customButtonArea").length >0 ){
 				continue;
@@ -94,70 +112,9 @@ function modifyDisplayList(){
 	}, 1000 );
 }
 
-var interval = setInterval( function(){
-	// wait for var available
-	try {
-		window.nomCtrl = angular.element( document.querySelector("[ng-controller='NominationsController as nomCtrl']") ).scope().nomCtrl;
-		var x = nomCtrl.datasource.get;
-	} catch (e) {
-		return;
-	}
-	// OK
-	clearInterval( interval );
+//===================================
 
-	nomCtrl.reload2 = nomCtrl.datasource.get;
-	nomCtrl.datasource.get = function() {
-	  var tReturn = nomCtrl.reload2.apply( nomCtrl.reload2, arguments);
-	  modifyDisplayList();
-	  return tReturn;
-	};
-}, 100 );
-
-window.myListAllNominations = function(){
-	var COLUMNS = [
-		//"order",
-		"day",
-		//"id",
-		"imageUrl",
-		"title",
-		"description",
-		"lat",
-		"lng",
-		"state",
-		"city",
-		"status",
-		"upgraded",
-		"nextUpgrade",
-	];
-
-	var table = document.createElement('table');
-	var thead = document.createElement('thead');
-	var tbody = document.createElement('tbody');
-
-	var tr = document.createElement('tr');
-  for (var col= 0; col<COLUMNS.length; col++) {
-		var th = document.createElement('th');
-		th.appendChild( document.createTextNode( COLUMNS[col] ) );
-		tr.appendChild(th);
-	}
-	thead.appendChild( tr );
-
-	for( var iNom=0; iNom<nomCtrl.nomList.length; iNom++ ){
-		var nom = nomCtrl.nomList[iNom];
-
-		var tr = document.createElement('tr');
-    for (var col= 0; col<COLUMNS.length; col++) {
-			var td = document.createElement('td');
-			td.appendChild( document.createTextNode( nom[ COLUMNS[col] ] ) );
-			tr.appendChild(td);
-		}
-		tbody.appendChild( tr );
-	}
-
-	table.appendChild(thead);
-	table.appendChild(tbody);
-
-	var css = " \
+NLM.css.exportTable = " \
 table{ \
 table-layout: fixed; \
 } \
@@ -166,70 +123,122 @@ td, th { \
 	max-width: 300px; \
 	overflow: ellipsis; \
 } \
-	";
+";
 
-	var style = document.createElement("style");
-	style.type = "text/css";
-	style.appendChild(document.createTextNode(css));
+NLM.exportTable_COLUMNS = [
+	//"order",
+	"day",
+	//"id",
+	"imageUrl",
+	"title",
+	"description",
+	"lat",
+	"lng",
+	"state",
+	"city",
+	"status",
+	"upgraded",
+	"nextUpgrade",
+];
 
+NLM.exportTable = function(){
+
+	var table = document.createElement('table');
+	var thead = document.createElement('thead');
+	var tbody = document.createElement('tbody');
+
+	var tr = document.createElement('tr');
+	for (var col= 0; col<exportTable_COLUMNS.length; col++) {
+		var th = document.createElement('th');
+		th.appendChild( document.createTextNode( exportTable_COLUMNS[col] ) );
+		tr.appendChild(th);
+	}
+	thead.appendChild( tr );
+
+	for( var iNom=0; iNom<nomCtrl.nomList.length; iNom++ ){
+		var nom = nomCtrl.nomList[iNom];
+
+		var tr = document.createElement('tr');
+    for (var col= 0; col<exportTable_COLUMNS.length; col++) {
+			var td = document.createElement('td');
+			td.appendChild( document.createTextNode( nom[ exportTable_COLUMNS[col] ] ) );
+			tr.appendChild(td);
+		}
+		tbody.appendChild( tr );
+	}
+
+	table.appendChild(thead);
+	table.appendChild(tbody);
+	
 	var w = window.open();
 	w.document.title = nomCtrl.length;
 	w.document.body.appendChild( table );
-	w.document.body.appendChild( style );
+	
+	NLM.appendCSS( NLM.css.exportTable, w.document.body );
 };
-
-document.querySelector(".nomination-header").innerHTML +=
-	"<button class='HeadCustomButton button' onclick='window.myListAllNominations();'>Export Table</button>";
 
 //===================================
 
-window.viewNominationsInCategories = function(){
+NLM.CUSTOM.categoriseNomList = function( nomList ){
+	var d = {
+		ALL:[],
+		status:{},
+		upgraded:{},
+	};
 
-	var w = window.open();
-	w.document.title = nomCtrl.nomList.length;
+	for( var iNom=0; iNom<nomList.length; iNom++ ){
+		var nom = nomList[iNom];
+		
+		d.ALL.push( nom );
+		
+		d.status[nom.status] = d.status[nom.status] || [];
+		d.status[nom.status].push( nom );
 
-	//=== parse nomList
-	function categoriseNomList( nomList ){
-		var d = {
-			ALL:[],
-			status:{},
-			upgraded:{},
-		};
-
-		for( var iNom=0; iNom<nomList.length; iNom++ ){
-			var nom = nomList[iNom];
-			
-			d.ALL.push( nom );
-			
-			d.status[nom.status] = d.status[nom.status] || [];
-			d.status[nom.status].push( nom );
-
-			d.upgraded[nom.upgraded] = d.upgraded[nom.upgraded] || [];
-			d.upgraded[nom.upgraded].push( nom );
-		}
-
-		// === sort all by "day"
-		for( var iL1 in d ){
-			if( Array.isArray( d[iL1] ) ){
-				d[iL1].sort( function(a,b){ a.day<b.day?1:-1 } );
-			}else{
-				for( var iL2 in d[iL1] ){
-					d[iL1][iL2].sort( function(a,b){ a.day<b.day?1:-1 } );
-				}
-			}
-		}
-
-		return d;
+		d.upgraded[nom.upgraded] = d.upgraded[nom.upgraded] || [];
+		d.upgraded[nom.upgraded].push( nom );
 	}
 
-	var d = categoriseNomList( nomCtrl.nomList );
-	w.d = d;
-	var root = document.createElement("div");
-
-	//=== menu
+	// === sort all by "day"
 	for( var iL1 in d ){
+		if( Array.isArray( d[iL1] ) ){
+			d[iL1].sort( function(a,b){ a.day<b.day?1:-1 } );
+		}else{
+			for( var iL2 in d[iL1] ){
+				d[iL1][iL2].sort( function(a,b){ a.day<b.day?1:-1 } );
+			}
+		}
+	}
+
+	return d;
+}
+
+NLM.CUSTOM.Class_CustomView = function( data, win ){
+	
+	this.data = data;
+	this.win = win;
+	this.doc = this.win.document;
+	
+	win.NLM = NLM;
+	win.customView = this;
+	
+	this.createMenu( this.doc, data );
+	this.displayContainer = new NLM.CUSTOM.Class_DisplayContainer( this );
+	
+	NLM.appendCSS( NLM.css.viewNominationsInCategories, this.doc.body );
+	
+	return this;
+}
+
+NLM.CUSTOM.Class_CustomView.prototype.createMenu = function(){
+	var document = this.doc;
+	var data = this.data;
+
+	var node = document.createElement("div");
+	this.menuNode = node;
+
+	for( var iL1 in data ){
 		var level1Container = document.createElement("div");
-		root.appendChild( level1Container );
+		node.appendChild( level1Container );
 		level1Container.className = "menu L1 container";
 
 		var level1Button = document.createElement("div");
@@ -237,9 +246,10 @@ window.viewNominationsInCategories = function(){
 		level1Button.className = "menu L1 button";
 		
 		
-		if( Array.isArray( d[iL1] ) ){
-			level1Button.setAttribute('onclick', "showList('"+iL1+"', 0)");
-			level1Button.innerText = iL1 + " (" + d[iL1].length + ")";
+		if( Array.isArray( data[iL1] ) ){
+			// for "ALL"
+			level1Button.setAttribute('onclick', "customView.displayContainer.showNomList('"+iL1+"')");
+			level1Button.innerText = iL1 + " (" + data[iL1].length + ")";
 			
 		}else{
 			level1Button.innerText = iL1;
@@ -248,56 +258,73 @@ window.viewNominationsInCategories = function(){
 			level1Container.appendChild( level2Container );
 			level2Container.className = "menu L2 container";
 
-			for( var iL2 in d[iL1] ){
+			for( var iL2 in data[iL1] ){
 				var level2Button = document.createElement("div");
 				level2Container.appendChild( level2Button );
 				level2Button.className = "menu L2 button";
-				level2Button.innerText = iL2 + " (" + d[iL1][iL2].length + ")";
-				level2Button.setAttribute('onclick', "showList('"+iL1+"."+iL2+"', 0)");
+				level2Button.innerText = iL2 + " (" + data[iL1][iL2].length + ")";
+				level2Button.setAttribute('onclick', "customView.displayContainer.showNomList('"+iL1+"."+iL2+"')");
 			}
 		}
 	}
+	
+	document.body.appendChild( node );
+};
 
-	//=== list noms
-	var displayContainer = document.createElement("div");
-	root.appendChild( displayContainer );
-	displayContainer.className = "displayContainer";
+NLM.CUSTOM.Class_DisplayContainer = function( customView ){
+	this.customView = customView;
+	var document = customView.doc;
+	
+	var node = this.node = document.createElement("div");
+	node.className = "displayContainer";
+	document.body.appendChild( node );
+	
+	customView.displayContainer = this;
+	
+	return this;
+};
 
-	w.showList = function( key, level ){
-		var doc = w.document;
-		var displayContainer = doc.querySelector(".displayContainer");
-		displayContainer.innerHTML = '';
-		var list = eval( "d."+key );
-		for (var iNom=0; iNom<list.length; iNom++ ) {
-			var nom = list[iNom];
-			
-			var nomBox = doc.createElement("div");
-			displayContainer.appendChild( nomBox );
-			nomBox.className = "nomBox";
-			nomBox.id = imgUrlToHashId( nom.imageUrl );
+NLM.CUSTOM.Class_DisplayContainer.prototype.showNomList = function( key ){
+	var document = this.customView.doc;
+	
+	var displayContainer = document.querySelector(".displayContainer");
+	displayContainer.innerHTML = '';
+	var list = eval( "NLM.CUSTOM.customView.data."+key );
+	for (var iNom=0; iNom<list.length; iNom++ ) {
+		var nom = list[iNom];
+		this.showNomination( nom );
+	}
+};
 
-			var img = doc.createElement("img");
-			nomBox.appendChild( img );
-			img.src = nom.imageUrl + "=s80";
+NLM.CUSTOM.Class_DisplayContainer.prototype.showNomination = function( nom ){
+	var document = this.customView.doc;
 
-			var title = doc.createElement("div");
-			nomBox.appendChild( title );
-			title.innerText = nom.title;
+	var nomBox = document.createElement("div");
+	this.node.appendChild( nomBox );
+	nomBox.className = "nomBox";
+	nomBox.id = NLM.imgUrlToHashId( nom.imageUrl );
 
-			var date = doc.createElement("div");
-			nomBox.appendChild( date );
-			date.innerText = nom.day;
-			
-			var button_watermeter = doc.createElement("a");
-			nomBox.appendChild( button_watermeter );
-			button_watermeter.innerText = "水表";
-			button_watermeter.className = "button";
-			button_watermeter.href = "https://brainstorming.azurewebsites.net/watermeter.html#" + nomBox.id;
-			button_watermeter.setAttribute('target', 'watermeter0');
-		}
-	};
+	var img = document.createElement("img");
+	nomBox.appendChild( img );
+	img.src = nom.imageUrl + "=s80";
 
-	var css = " \
+	var title = document.createElement("div");
+	nomBox.appendChild( title );
+	title.innerText = nom.title;
+
+	var date = document.createElement("div");
+	nomBox.appendChild( date );
+	date.innerText = nom.day;
+	
+	var button_watermeter = document.createElement("a");
+	nomBox.appendChild( button_watermeter );
+	button_watermeter.innerText = "水表";
+	button_watermeter.className = "button";
+	button_watermeter.href = "https://brainstorming.azurewebsites.net/watermeter.html#" + nomBox.id;
+	button_watermeter.setAttribute('target', 'watermeter0');
+};
+
+NLM.css.viewNominationsInCategories = " \
 body{ \
 	background-color: #222222; \
 } \
@@ -345,15 +372,52 @@ div.menu { \
 	margin: 3px; \
 	color: white; \
 } \
-	";
+";
 
-	var style = document.createElement("style");
-	style.type = "text/css";
-	style.appendChild(document.createTextNode(css));
-
-	w.document.body.appendChild( style );
-	w.document.body.appendChild( root );
+NLM.openCustomView = function(){
+	
+	var win = window.open();
+	win.document.title = nomCtrl.nomList.length;
+	
+	win.NLM = NLM;
+	win.nomCtrl = nomCtrl;
+	
+	var scriptNode = document.createElement("script");
+	var script = 
+		"console.log( NLM.CUSTOM.categoriseNomList( nomCtrl.nomList ) ); \
+		NLM.CUSTOM.customView = \
+		new NLM.CUSTOM.Class_CustomView( NLM.CUSTOM.categoriseNomList( nomCtrl.nomList ), window );"
+	scriptNode.appendChild( document.createTextNode(script) );
+	win.document.body.append(scriptNode);
 };
 
-document.querySelector(".nomination-header").innerHTML +=
-	"<button class='HeadCustomButton button' onclick='window.viewNominationsInCategories();'>View All (Beta)</button>";
+//===================================
+
+NLM.init = function(){
+	nomCtrl.reload2 = nomCtrl.datasource.get;
+	nomCtrl.datasource.get = function() {
+	  var tReturn = nomCtrl.reload2.apply( nomCtrl.reload2, arguments);
+	  NLM.modifyDisplayList();
+	  return tReturn;
+	};
+	
+	NLM.appendCSS( NLM.css.main, document.body );
+	
+	for( var i=0; NLM.BUTTONS.length; i++ ){
+		NLM.addButton( NLM.BUTTONS[i] );
+	}
+};
+
+var interval = setInterval( function(){
+	// wait for var available
+	try {
+		window.nomCtrl = angular.element( document.querySelector("[ng-controller='NominationsController as nomCtrl']") ).scope().nomCtrl;
+		var x = nomCtrl.datasource.get;
+	} catch (e) {
+		return;
+	}
+	// OK
+	clearInterval( interval );
+	NLM.init();
+	
+}, 100 );
