@@ -5,25 +5,28 @@
 // @author      @lokpro
 // @updateURL https://github.com/Ingrass/OPR_NominationListManagement/raw/master/OPR_NominationListManagement.user.js
 // @downloadURL https://github.com/Ingrass/OPR_NominationListManagement/raw/master/OPR_NominationListManagement.user.js
-// @version     0.3.4
+// @version     0.4
 // @grant       none
 // ==/UserScript==
 
 /*
+v0.4 8/Jan/2020
+- custom view - added colors and styles
+
 v0.3.4 8/Jan/2020
-- added "upgrade next" categroy
+- custom view - added "upgrade next" categroy
 
 v0.3.3 7/Jan/2020
 - rewritten code structure, no functional changes
 
 v0.3.3 2/Jan/2020
-- added "ALL" category
+- custom view - added "ALL" category
 
 v0.3.2 27/12/2019
 - 更動頭頂2 buttons位置以免蓋住系統的buttons
 
 v0.3.1 28/10/2019
-- 分類瀏覽 加個日期
+- custom view - added date ;分類瀏覽 加個日期
 
 v0.3 28/10/2019
 - 加入功能: 用分類的方式瀏覽；做了個框架，功能待加
@@ -235,7 +238,9 @@ NLM.CUSTOM.Class_CustomView = function( data, win ){
 	this.createMenu( this.doc, data );
 	this.displayContainer = new NLM.CUSTOM.Class_DisplayContainer( this );
 	
-	NLM.appendCSS( NLM.css.viewNominationsInCategories, this.doc.body );
+	NLM.appendCSS(
+		NLM.css.viewNominationsInCategories + " " + NLM.css.nomBoxCategories
+		, this.doc.body );
 	
 	return this;
 }
@@ -312,10 +317,15 @@ NLM.CUSTOM.Class_DisplayContainer.prototype.showNomList = function( key1, key2=n
 
 NLM.CUSTOM.Class_DisplayContainer.prototype.showNomination = function( nom ){
 	var document = this.customView.doc;
-
+	
+	var classNames = [ "nomBox" ];
+	classNames.push( "status-" + nom.status );
+	if( nom.upgraded ) classNames.push( "upgraded" );
+	if( nom.nextUpgrade ) classNames.push( "nextUpgrade" );
+	
 	var nomBox = document.createElement("div");
 	this.node.appendChild( nomBox );
-	nomBox.className = "nomBox";
+	nomBox.className = classNames.join(" ");
 	nomBox.id = NLM.imgUrlToHashId( nom.imageUrl );
 
 	var img = document.createElement("img");
@@ -339,8 +349,11 @@ NLM.CUSTOM.Class_DisplayContainer.prototype.showNomination = function( nom ){
 };
 
 NLM.css.viewNominationsInCategories = " \
+* { \
+	box-sizing: border-box; \
+} \
 body{ \
-	background-color: #222222; \
+	background-color: #001212; \
 } \
 div.menu { \
 	padding: 4px 7px; \
@@ -357,9 +370,14 @@ div.menu { \
 	background-color: #226767; \
 	border: 3px solid #5BC5C5; \
 	cursor: pointer; \
+	display: inline-block; \
+} \
+.button:hover{ \
+	background-color: #5BC5C5;\
+	border-color: #226767; \
 } \
 .menu.button{ \
-	margin: 3px; \
+	margin: 2px; \
 } \
 .displayContainer{ \
 	border: 1px solid #226767; \
@@ -370,12 +388,16 @@ div.menu { \
 .nomBox{ \
 	display: inline-block; \
 	border: 1px solid #226767; \
+	border-radius: 5px; \
 	min-height: 100px; \
 	width: 100px; \
 	padding: 2px; \
 	margin: 3px; \
 	vertical-align: top; \
 	text-align: center; \
+} \
+.nomBox .button{ \
+padding: 3px; \
 } \
 .nomBox img{ \
 	max-width: 70%; \
@@ -385,6 +407,37 @@ div.menu { \
 .nomBox *{ \
 	margin: 3px; \
 	color: white; \
+} \
+";
+
+NLM.css.nomBoxCategories = " \
+.nomBox.status-NOMINATED { \
+	border-color: #AAAAAA; \
+} \
+.nomBox.status-VOTING { \
+	border-color: #DCDC00; \
+	border-width: 2px; \
+} \
+.nomBox.status-ACCEPTED { \
+	border-color: #59E759; \
+	border-style: dashed; \
+} \
+.nomBox.status-REJECTED { \
+	border-color: #F75959; \
+	border-style: dashed; \
+} \
+.nomBox.status-DUPLICATE { \
+	border-color: #FFBE00; \
+	border-style: dashed; \
+} \
+.nomBox.upgraded:after { \
+	content : url('https://wayfarer.nianticlabs.com/img/lightning-20px.png'); \
+} \
+.nomBox.nextUpgrade:after { \
+	content : url('https://wayfarer.nianticlabs.com/img/lightning-20px.png'); \
+	border: 2px dotted #d752ff;\
+	border-radius: 99px; \
+	display: inline-block; \
 } \
 ";
 
