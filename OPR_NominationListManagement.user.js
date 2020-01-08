@@ -421,6 +421,7 @@ NLM.css.nomBoxCategories = " \
 .nomBox.status-ACCEPTED { \
 	border-color: #59E759; \
 	border-style: dashed; \
+	border-width: 2px; \
 } \
 .nomBox.status-REJECTED { \
 	border-color: #F75959; \
