@@ -5,11 +5,14 @@
 // @author      @lokpro
 // @updateURL https://github.com/Ingrass/OPR_NominationListManagement/raw/master/OPR_NominationListManagement.user.js
 // @downloadURL https://github.com/Ingrass/OPR_NominationListManagement/raw/master/OPR_NominationListManagement.user.js
-// @version     0.4
+// @version     0.4.1
 // @grant       none
 // ==/UserScript==
 
 /*
+v0.4.1 8/Jan/2020
+- compress head menu buttons to one row
+
 v0.4 8/Jan/2020
 - custom view - added colors and styles
 
@@ -93,7 +96,7 @@ NLM.BUTTONS = [
 ];
 
 NLM.addButton = function( obj ){
-	document.querySelector(".nomination-header").innerHTML +=
+	NLM.headButtonsContainer.innerHTML +=
 		"<button class='HeadCustomButton button' onclick='"+obj.onclick+"'>"+obj.text+"</button>";
 };
 
@@ -470,6 +473,10 @@ NLM.init = function(){
 	};
 	
 	NLM.appendCSS( NLM.css.main, document.body );
+	
+	// add head buttons
+	var h = NLM.headButtonsContainer = document.createElement("div");
+	document.querySelector(".nomination-header").appendChild( h );
 	
 	for( var i=0; NLM.BUTTONS.length; i++ ){
 		NLM.addButton( NLM.BUTTONS[i] );
