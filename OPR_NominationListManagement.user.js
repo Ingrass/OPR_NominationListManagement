@@ -460,13 +460,8 @@ NLM.openCustomView = function(){
 	win.NLM = NLM;
 	win.nomCtrl = nomCtrl;
 	
-	var scriptNode = document.createElement("script");
-	var script = 
-		"console.log( NLM.CUSTOM.categoriseNomList( nomCtrl.nomList ) ); \
-		NLM.CUSTOM.customView = \
-		new NLM.CUSTOM.Class_CustomView( NLM.CUSTOM.categoriseNomList( nomCtrl.nomList ), window );"
-	scriptNode.appendChild( document.createTextNode(script) );
-	win.document.body.append(scriptNode);
+	NLM.CUSTOM.customView = 
+		new NLM.CUSTOM.Class_CustomView( NLM.CUSTOM.categoriseNomList( nomCtrl.nomList ), win );
 };
 
 //===================================
