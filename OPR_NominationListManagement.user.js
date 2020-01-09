@@ -5,11 +5,14 @@
 // @author      @lokpro
 // @updateURL https://github.com/Ingrass/OPR_NominationListManagement/raw/master/OPR_NominationListManagement.user.js
 // @downloadURL https://github.com/Ingrass/OPR_NominationListManagement/raw/master/OPR_NominationListManagement.user.js
-// @version     0.4.2
+// @version     0.4.3
 // @grant       none
 // ==/UserScript==
 
 /*
+v0.4.3 9/Jan/2020
+- custom view - added viewport for mobile devices
+
 v0.4.2 9/Jan/2020
 - custom view - added styles for WITHDRAWN
 
@@ -65,6 +68,12 @@ NLM.appendCSS = function( css, toNode ){
 	style.type = "text/css";
 	style.appendChild( document.createTextNode(css) );
 	toNode.appendChild( style );
+};
+NLM.appendViewport = function( content, toNode ){
+	var node=document.createElement('meta');
+	node.name = "viewport";
+	node.content = content;
+	toNode.appendChild(node);
 };
 
 NLM.css.main = " \
@@ -240,6 +249,10 @@ NLM.CUSTOM.Class_CustomView = function(){
 	
 	this.createMenu();
 	this.displayContainer = new NLM.CUSTOM.Class_DisplayContainer( this );
+	
+	NLM.appendViewport(
+		"width=560, initial-scale=1, user-scalable=yes"
+		, this.win.document.head );
 	
 	NLM.appendCSS(
 		NLM.css.customView + " " + NLM.css.nomBoxCategories
