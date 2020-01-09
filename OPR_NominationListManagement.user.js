@@ -5,11 +5,14 @@
 // @author      @lokpro
 // @updateURL https://github.com/Ingrass/OPR_NominationListManagement/raw/master/OPR_NominationListManagement.user.js
 // @downloadURL https://github.com/Ingrass/OPR_NominationListManagement/raw/master/OPR_NominationListManagement.user.js
-// @version     0.4.1
+// @version     0.4.2
 // @grant       none
 // ==/UserScript==
 
 /*
+v0.4.2 9/Jan/2020
+- custom view - added styles for WITHDRAWN
+
 v0.4.1 8/Jan/2020
 - compress head menu buttons to one row
 
@@ -442,6 +445,10 @@ NLM.css.nomBoxCategories = " \
 	border: 2px dotted #d752ff;\
 	border-radius: 99px; \
 	display: inline-block; \
+} \
+.nomBox.status-WITHDRAWN { \
+	border-color: #F75959; \
+	background-image: repeating-linear-gradient(45deg, #ff000033 5px, transparent 5px, transparent 10px, #ff000033 10px, #ff000033 15px); \
 } \
 ";
 
