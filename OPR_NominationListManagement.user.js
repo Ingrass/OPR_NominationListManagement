@@ -232,23 +232,21 @@ NLM.CUSTOM.categoriseNomList = function( nomList ){
 	return d;
 }
 
-NLM.CUSTOM.Class_CustomView = function( win, NLM, nomCtrl ){
-	win.NLM = NLM;
-	win.nomCtrl = nomCtrl;
-	win.customView = this;
+NLM.CUSTOM.Class_CustomView = function(){
+	this.win = window.open();
+	this.win.customView = this;
 	
 	this.data = NLM.CUSTOM.categoriseNomList( nomCtrl.nomList );
-	this.win = win;
 	
 	this.createMenu();
 	this.displayContainer = new NLM.CUSTOM.Class_DisplayContainer( this );
 	
 	NLM.appendCSS(
 		NLM.css.customView + " " + NLM.css.nomBoxCategories
-		, win.document.body );
+		, this.win.document.body );
 	
 	return this;
-}
+};
 
 NLM.CUSTOM.Class_CustomView.prototype.createMenu = function(){
 	var document = this.win.document;
@@ -452,9 +450,8 @@ NLM.css.nomBoxCategories = " \
 ";
 
 NLM.openCustomView = function(){
-	
 	NLM.CUSTOM.customView = 
-		new NLM.CUSTOM.Class_CustomView( window.open(), NLM, nomCtrl );
+		new NLM.CUSTOM.Class_CustomView();
 };
 
 //===================================
