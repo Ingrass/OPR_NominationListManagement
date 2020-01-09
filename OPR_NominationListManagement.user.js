@@ -232,27 +232,26 @@ NLM.CUSTOM.categoriseNomList = function( nomList ){
 	return d;
 }
 
-NLM.CUSTOM.Class_CustomView = function( data, win ){
-	
-	this.data = data;
-	this.win = win;
-	this.doc = this.win.document;
-	
+NLM.CUSTOM.Class_CustomView = function( win, NLM, nomCtrl ){
 	win.NLM = NLM;
+	win.nomCtrl = nomCtrl;
 	win.customView = this;
 	
-	this.createMenu( this.doc, data );
+	this.data = NLM.CUSTOM.categoriseNomList( nomCtrl.nomList );
+	this.win = win;
+	
+	this.createMenu();
 	this.displayContainer = new NLM.CUSTOM.Class_DisplayContainer( this );
 	
 	NLM.appendCSS(
-		NLM.css.viewNominationsInCategories + " " + NLM.css.nomBoxCategories
-		, this.doc.body );
+		NLM.css.customView + " " + NLM.css.nomBoxCategories
+		, win.document.body );
 	
 	return this;
 }
 
 NLM.CUSTOM.Class_CustomView.prototype.createMenu = function(){
-	var document = this.doc;
+	var document = this.win.document;
 	var data = this.data;
 
 	var node = document.createElement("div");
@@ -295,7 +294,7 @@ NLM.CUSTOM.Class_CustomView.prototype.createMenu = function(){
 
 NLM.CUSTOM.Class_DisplayContainer = function( customView ){
 	this.customView = customView;
-	var document = customView.doc;
+	var document = customView.win.document;
 	
 	var node = this.node = document.createElement("div");
 	node.className = "displayContainer";
@@ -307,7 +306,7 @@ NLM.CUSTOM.Class_DisplayContainer = function( customView ){
 };
 
 NLM.CUSTOM.Class_DisplayContainer.prototype.showNomList = function( key1, key2=null ){
-	var document = this.customView.doc;
+	var document = this.customView.win.document;
 	
 	var displayContainer = document.querySelector(".displayContainer");
 	displayContainer.innerHTML = '';
@@ -322,7 +321,7 @@ NLM.CUSTOM.Class_DisplayContainer.prototype.showNomList = function( key1, key2=n
 };
 
 NLM.CUSTOM.Class_DisplayContainer.prototype.showNomination = function( nom ){
-	var document = this.customView.doc;
+	var document = this.customView.win.document;
 	
 	var classNames = [ "nomBox" ];
 	classNames.push( "status-" + nom.status );
@@ -354,7 +353,7 @@ NLM.CUSTOM.Class_DisplayContainer.prototype.showNomination = function( nom ){
 	button_watermeter.setAttribute('target', 'watermeter0');
 };
 
-NLM.css.viewNominationsInCategories = " \
+NLM.css.customView = " \
 * { \
 	box-sizing: border-box; \
 } \
@@ -454,14 +453,8 @@ NLM.css.nomBoxCategories = " \
 
 NLM.openCustomView = function(){
 	
-	var win = window.open();
-	win.document.title = nomCtrl.nomList.length;
-	
-	win.NLM = NLM;
-	win.nomCtrl = nomCtrl;
-	
 	NLM.CUSTOM.customView = 
-		new NLM.CUSTOM.Class_CustomView( NLM.CUSTOM.categoriseNomList( nomCtrl.nomList ), win );
+		new NLM.CUSTOM.Class_CustomView( window.open(), NLM, nomCtrl );
 };
 
 //===================================
