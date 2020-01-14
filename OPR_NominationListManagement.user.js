@@ -5,11 +5,14 @@
 // @author      @lokpro
 // @updateURL https://github.com/Ingrass/OPR_NominationListManagement/raw/master/OPR_NominationListManagement.user.js
 // @downloadURL https://github.com/Ingrass/OPR_NominationListManagement/raw/master/OPR_NominationListManagement.user.js
-// @version     0.4.3
+// @version     0.4.4
 // @grant       none
 // ==/UserScript==
 
 /*
+v0.4.4 14/Jan/2020
+- fixed button style
+
 v0.4.3 9/Jan/2020
 - custom view - added viewport for mobile devices
 
@@ -77,29 +80,39 @@ NLM.appendViewport = function( content, toNode ){
 };
 
 NLM.css.main = " \
-	#nom-table { \
+#nom-table { \
 	margin-left: 20%; \
-	} \
-	.nomination.card{ \
+} \
+.nomination.card{ \
 	position: relative; \
 	overflow: visible; \
-	} \
-	.customButtonArea { \
+} \
+.customButtonArea { \
 	position: absolute; \
 	top: 0; \
 	left: -25%; \
 	width: 25%; \
 	padding-right: 2px; \
-	} \
-	.customButton{ \
+} \
+.customButton{ \
 	width: 100%; \
 	display: block; \
 	margin: 0; \
 	text-align: center; \
-	} \
-	.HeadCustomButton{ \
-	float:left \
-	} \
+} \
+.buttonStyle{ \
+	background-color: #008888; \
+	border: 2px solid #0c4f51; \
+	padding: 3px 12px; \
+	color: #FFFCDE; \
+} \
+.buttonStyle:hover { \
+	background-color: #5c8800; \
+} \
+.HeadCustomButton{ \
+	float:left; \
+	margin-right: 6px; \
+} \
 " ;
 
 NLM.BUTTONS = [
@@ -109,7 +122,7 @@ NLM.BUTTONS = [
 
 NLM.addButton = function( obj ){
 	NLM.headButtonsContainer.innerHTML +=
-		"<button class='HeadCustomButton button' onclick='"+obj.onclick+"'>"+obj.text+"</button>";
+		"<button class='HeadCustomButton buttonStyle' onclick='"+obj.onclick+"'>"+obj.text+"</button>";
 };
 
 NLM.modifyDisplayList = function(){
@@ -127,11 +140,11 @@ NLM.modifyDisplayList = function(){
 				continue;
 			}
 			divs[i].innerHTML = "<div class='customButtonArea'>"
-				+"<button class='customButton button' onclick='window.open(\""+BASEURL+hashId+"\", \"watermeter0\"); event.stopPropagation();'>水表</button>"
+				+"<button class='customButton buttonStyle' onclick='window.open(\""+BASEURL+hashId+"\", \"watermeter0\"); event.stopPropagation();'>水表</button>"
 				+"</div>" + divs[i].innerHTML;
 		}
 	}, 1000 );
-}
+};
 
 //===================================
 
