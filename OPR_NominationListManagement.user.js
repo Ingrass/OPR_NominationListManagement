@@ -112,7 +112,7 @@ NLM.css.main = " \
 } \
 .HeadCustomControl{ \
 	float:left; \
-	margin-right: 6px; \
+	margin: 0 6px 6px 0; \
 	border: 2px solid #0c4f51; \
 	padding: 3px 8px; \
 	display: inline-block; \
@@ -178,7 +178,7 @@ NLM.showQuota = function(){
 	var dateStr = yyyy+"-"+mm+"-"+dd;
 	var used = nomCtrl.nomList.reduce( (acc, cur)=>{ return acc+= cur.day>=dateStr?1:0; } ,  0 );
 	NLM.addControl(
-		"<div class='HeadCustomControl'>" +used+ " in past "+days+" days</div>"
+		"<div class='HeadCustomControl'>"+days+"-day: " +used+ "</div>"
 	);
 };
 
