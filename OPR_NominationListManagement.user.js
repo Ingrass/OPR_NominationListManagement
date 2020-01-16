@@ -5,11 +5,14 @@
 // @author      @lokpro
 // @updateURL https://github.com/Ingrass/OPR_NominationListManagement/raw/master/OPR_NominationListManagement.user.js
 // @downloadURL https://github.com/Ingrass/OPR_NominationListManagement/raw/master/OPR_NominationListManagement.user.js
-// @version     0.4.4
+// @version     0.4.5
 // @grant       none
 // ==/UserScript==
 
 /*
+v0.4.5 16/Jan/2020
+- shows nominations submitted in past 14 days
+
 v0.4.4 14/Jan/2020
 - fixed button style
 
@@ -102,16 +105,21 @@ NLM.css.main = " \
 } \
 .buttonStyle{ \
 	background-color: #008888; \
-	border: 2px solid #0c4f51; \
-	padding: 3px 12px; \
 	color: #FFFCDE; \
 } \
 .buttonStyle:hover { \
 	background-color: #5c8800; \
 } \
-.HeadCustomButton{ \
+.HeadCustomControl{ \
 	float:left; \
 	margin-right: 6px; \
+	border: 2px solid #0c4f51; \
+	padding: 3px 8px; \
+	display: inline-block; \
+} \
+div.HeadCustomControl{ \
+	background-color: #c0ebeb; \
+	color: #1D6753; \
 } \
 " ;
 
@@ -120,9 +128,13 @@ NLM.BUTTONS = [
 { onclick:"NLM.openCustomView();", text:"Custom View (Beta)" },
 ];
 
+NLM.addControl = function( html ){
+	NLM.headControlsContainer.innerHTML += html;
+};
+
 NLM.addButton = function( obj ){
-	NLM.headButtonsContainer.innerHTML +=
-		"<button class='HeadCustomButton buttonStyle' onclick='"+obj.onclick+"'>"+obj.text+"</button>";
+	NLM.headControlsContainer.innerHTML +=
+		"<button class='HeadCustomControl buttonStyle' onclick='"+obj.onclick+"'>"+obj.text+"</button>";
 };
 
 NLM.modifyDisplayList = function(){
@@ -144,6 +156,30 @@ NLM.modifyDisplayList = function(){
 				+"</div>" + divs[i].innerHTML;
 		}
 	}, 1000 );
+};
+
+//===================================
+
+NLM.showQuota = function(){
+	var days = 14;
+	
+	var date = new Date();
+	date.setDate( date.getDate()-days );
+
+	var dd = date.getDate();
+	var mm = date.getMonth()+1; 
+	var yyyy = date.getFullYear();
+	if(dd<10){
+		dd='0'+dd;
+	} 
+	if(mm<10){
+		 mm='0'+mm;
+	}
+	var dateStr = yyyy+"-"+mm+"-"+dd;
+	var used = nomCtrl.nomList.reduce( (acc, cur)=>{ return acc+= cur.day>=dateStr?1:0; } ,  0 );
+	NLM.addControl(
+		"<div class='HeadCustomControl'>" +used+ " in past "+days+" days</div>"
+	);
 };
 
 //===================================
@@ -194,7 +230,7 @@ NLM.exportTable = function(){
 		var nom = nomCtrl.nomList[iNom];
 
 		var tr = document.createElement('tr');
-    for (var col= 0; col<COLUMNS.length; col++) {
+    		for (var col= 0; col<COLUMNS.length; col++) {
 			var td = document.createElement('td');
 			td.appendChild( document.createTextNode( nom[ COLUMNS[col] ] ) );
 			tr.appendChild(td);
@@ -483,29 +519,37 @@ NLM.openCustomView = function(){
 //===================================
 
 NLM.init = function(){
+	// add headControlsContainer
+	var h = NLM.headControlsContainer = document.createElement("div");
+	document.querySelector(".nomination-header").appendChild( h );
+	
+	// add Quota display
+	NLM.showQuota();
+	
+	// add head buttons
+	for( var i=0; i<NLM.BUTTONS.length; i++ ){
+		NLM.addButton( NLM.BUTTONS[i] );
+	}
+
+	// modifyDisplayList
 	nomCtrl.reload2 = nomCtrl.datasource.get;
-	nomCtrl.datasource.get = function() {
+	nomCtrl.datasource.get = function(){
 	  var tReturn = nomCtrl.reload2.apply( nomCtrl.reload2, arguments);
 	  NLM.modifyDisplayList();
 	  return tReturn;
 	};
-	
+	NLM.modifyDisplayList();
+
+	// css
 	NLM.appendCSS( NLM.css.main, document.body );
-	
-	// add head buttons
-	var h = NLM.headButtonsContainer = document.createElement("div");
-	document.querySelector(".nomination-header").appendChild( h );
-	
-	for( var i=0; NLM.BUTTONS.length; i++ ){
-		NLM.addButton( NLM.BUTTONS[i] );
-	}
+	NLM.appendCSS( NLM.css.modifyDisplayList, document.body );
 };
 
 var interval = setInterval( function(){
 	// wait for var available
 	try {
 		window.nomCtrl = angular.element( document.querySelector("[ng-controller='NominationsController as nomCtrl']") ).scope().nomCtrl;
-		var x = nomCtrl.datasource.get;
+		if( nomCtrl.nomList.length == 0 ) return;
 	} catch (e) {
 		return;
 	}
