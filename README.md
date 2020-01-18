@@ -7,3 +7,5 @@ https://github.com/Ingrass/OPR_NominationListManagement/raw/master/OPR_Nominatio
 ![demo0](demo0.png)
 
 ![demo_List](demo_List.png)
+
+![demo_Map](demo_Map.png)
