@@ -5,11 +5,14 @@
 // @author      @lokpro
 // @updateURL https://github.com/Ingrass/OPR_NominationListManagement/raw/master/OPR_NominationListManagement.user.js
 // @downloadURL https://github.com/Ingrass/OPR_NominationListManagement/raw/master/OPR_NominationListManagement.user.js
-// @version     0.4.5
+// @version     0.5
 // @grant       none
 // ==/UserScript==
 
 /*
+v0.5 18/Jan/2020
+- added map View
+
 v0.4.5 16/Jan/2020
 - shows nominations submitted in past 14 days
 
@@ -63,6 +66,7 @@ v0.1 17/10/2019
 
 window.NLM = {}; // main page
 NLM.CUSTOM = {}; // custom view
+NLM.MAP = {}; // map view
 NLM.css = {};
 
 NLM.imgUrlToHashId = function( imgUrl ){
@@ -112,7 +116,7 @@ NLM.css.main = " \
 } \
 .HeadCustomControl{ \
 	float:left; \
-	margin: 0 6px 6px 0; \
+	margin: 0 5px 5px 0; \
 	border: 2px solid #0c4f51; \
 	padding: 3px 8px; \
 	display: inline-block; \
@@ -124,8 +128,9 @@ div.HeadCustomControl{ \
 " ;
 
 NLM.BUTTONS = [
-{ onclick:"NLM.exportTable();", text:"Export Table" },
-{ onclick:"NLM.openCustomView();", text:"Custom View (Beta)" },
+{ onclick:"NLM.exportTable();", text:"Table" },
+{ onclick:"NLM.openCustomView();", text:"NewView" },
+{ onclick:"NLM.openMapView();", text:"Map" },
 ];
 
 NLM.addControl = function( html ){
@@ -514,6 +519,193 @@ NLM.css.nomBoxCategories = " \
 NLM.openCustomView = function(){
 	NLM.CUSTOM.customView = 
 		new NLM.CUSTOM.Class_CustomView();
+};
+
+//===================================
+
+NLM.MAP.Class_MapView = function(){
+	this.win = window.open();
+	
+	with( this.win.document ){
+		open("text/html", "replace");
+		write('<HTML><HEAD> \
+			<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.6.0/leaflet.css" /> \
+			<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.6.0/leaflet.js"></script> \
+		</HEAD><BODY><div id="mapid"></div><script>mapView.init();</script></BODY></HTML>');
+		close();
+	}
+	
+	this.win.mapView = this;
+	this.data = NLM.CUSTOM.categoriseNomList( nomCtrl.nomList );
+	
+	return this;
+};
+
+
+NLM.MAP.Class_MapView.prototype.init = function(){
+	var L = this.win.L;
+	
+	NLM.appendViewport(
+		"width=device-width, initial-scale=1, user-scalable=no, maximum-scale=1, minimum-scale=1"
+		, this.win.document.head );
+	
+	NLM.appendCSS(
+		NLM.css.mapView
+		, this.win.document.body );
+
+	this.tileLayers = this.createTileLayers();
+	this.markerLayers = {};
+	this.allMarkersGroup = L.featureGroup();
+
+	var mymap = this.mymap = L.map('mapid', {
+		center: [22.165,113.56],
+		zoom: 3,
+		layers: this.tileLayers[ "CartoDB Light" ],
+		wheelPxPerZoomLevel: 120,
+		doubleClickZoom: false,
+		renderer: L.canvas(),
+	});
+	
+	
+	for( var iStatus in this.data.status ){
+		var nomList = this.data.status[iStatus];
+		for( var iNom=0; iNom<nomList.length; iNom++ ){
+			var nom = nomList[iNom];
+			var coord = [ nom.lat, nom.lng ];
+			var popup = L.popup({ minWidth:300, closeButton:false, autoPan:true })
+				.setContent(
+					"<img style='max-width:250px; height:auto;' src='"+nom.imageUrl+"'>"
+					+"<p style='font-size:18px;'><a target='watermeter0' href='https://brainstorming.azurewebsites.net/watermeter.html#"+NLM.imgUrlToHashId( nom.imageUrl )+"'>"+nom.title+"</a><br>"+nom.day+"<br>"+nom.status+"</p>" );
+			
+			var marker = L.circleMarker( coord, {weight: 1, } );
+			L.setOptions( marker, NLM.MAP.MARKER_OPTION_BY_STATUS[ nom.status ] );
+			marker.setRadius( NLM.MAP.MARKER_OPTION_BY_STATUS[ nom.status ].radius || 7 );
+			
+			marker
+				.bindTooltip( nom.title )
+				.bindPopup( popup )
+				
+				.addTo( mymap )
+				.addTo( this.markerLayers[nom.status] = this.markerLayers[nom.status] || new L.layerGroup().addTo( mymap ) )
+				.addTo( this.allMarkersGroup );
+		}
+		
+		// modify layer display names
+		var layerName =
+			"<span class='markerStatus "+iStatus+"'>"
+			+"status_"+iStatus+ " ("+nomList.length+")"
+			+"</span>";
+			
+		this.markerLayers[layerName] = this.markerLayers[iStatus];
+		delete this.markerLayers[iStatus];
+	}
+	
+	mymap.fitBounds( this.allMarkersGroup.getBounds() );
+	//===
+	L.control.layers( this.tileLayers, this.markerLayers ).addTo(mymap);
+};
+	
+NLM.MAP.Class_MapView.prototype.createTileLayers = function(){
+	var L = this.win.L;
+	
+	return {
+		"CartoDB Voyager": L.tileLayer( 'https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}.png', {
+			attribution:'&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>, &copy; <a href="https://carto.com/attributions">CARTO</a>',
+			maxZoom: 19,
+			noWrap: true,
+		}),
+		"CartoDB Light": L.tileLayer( 'https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}.png', {
+			attribution:'&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>, &copy; <a href="https://carto.com/attributions">CARTO</a>',
+			maxZoom: 19,
+			noWrap: true,
+		}),
+		"CartoDB Dark": L.tileLayer( 'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}.png', {
+			attribution:'&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>, &copy; <a href="https://carto.com/attributions">CARTO</a>',
+			maxZoom: 19,
+			noWrap: true,
+		}),
+		OSM: L.tileLayer( 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+			attribution: 'Map data © OpenStreetMap contributors',
+			maxZoom: 19,
+			noWrap: true,
+		}),
+		"Google Hybrid": L.tileLayer('http://{s}.google.com/vt/lyrs=y&hl=zh-TW&x={x}&y={y}&z={z}',{
+			attribution: "Google",
+			maxZoom: 21,
+			noWrap: true,
+			subdomains:['mt0','mt1','mt2','mt3'],
+		}),
+		"Google Satellite": L.tileLayer('http://{s}.google.com/vt/lyrs=s&hl=zh-TW&x={x}&y={y}&z={z}',{
+			attribution: "Google",
+			maxZoom: 21,
+			noWrap: true,
+			subdomains:['mt0','mt1','mt2','mt3'],
+		}),
+		"Google Roads": L.tileLayer('http://{s}.google.com/vt/lyrs=m&hl=zh-TW&x={x}&y={y}&z={z}',{
+			attribution: "Google",
+			maxZoom: 21,
+			noWrap: true,
+			subdomains:['mt0','mt1','mt2','mt3'],
+		}),
+	};
+};
+
+NLM.css.mapView = " \
+html, body, #mapid { \
+	height: 100%; \
+	width: 100%; \
+	padding:0px; \
+	margin:0px; \
+} \
+.leaflet-control-layers-overlays>label{ \
+	margin-bottom: 13px \
+} \
+.markerStatus { \
+	border-width: 1px; \
+	border-style: solid; \
+	border-radius: 5px; \
+	padding: 3px; \
+} \
+.markerStatus.NOMINATED { \
+	border-color: #338888; \
+	border-width: 2px; \
+} \
+.markerStatus.VOTING { \
+	border-color: #DCDC00; \
+	border-width: 2px; \
+} \
+.markerStatus.ACCEPTED { \
+	border-color: #02D752; \
+	border-style: dashed; \
+	border-width: 2px; \
+} \
+.markerStatus.REJECTED { \
+	border-color: #F75959; \
+	border-style: dashed; \
+} \
+.markerStatus.DUPLICATE { \
+	border-color: #FFBE00; \
+	border-style: dashed; \
+} \
+.markerStatus.WITHDRAWN { \
+	border-color: #571010; \
+	border-style: dashed; \
+	border-width: 2px; \
+} \
+";
+
+NLM.MAP.MARKER_OPTION_BY_STATUS = {
+	NOMINATED: {color:"#338888", weight:3, radius:10, },
+	VOTING: {color:"#DCDC00", weight:3, radius:10, },
+	ACCEPTED: {color:"#02D752", dashArray:"3,3",},
+	REJECTED: {color:"#F75959", dashArray:"1,3",},
+	DUPLICATE: {color:"#FFBE00", dashArray:"1,2",},
+	WITHDRAWN: {color:"#571010", weight:3, radius:9, dashArray:"3,3,3,6",},
+};
+
+NLM.openMapView = function(){
+	NLM.MAP.mapView = 
+		new NLM.MAP.Class_MapView();
 };
 
 //===================================
