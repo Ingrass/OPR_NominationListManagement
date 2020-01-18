@@ -593,7 +593,7 @@ NLM.MAP.Class_MapView.prototype.init = function(){
 		// modify layer display names
 		var layerName =
 			"<span class='markerStatus "+iStatus+"'>"
-			+"status_"+iStatus+ " ("+nomList.length+")"
+			+iStatus+ " ("+nomList.length+")"
 			+"</span>";
 			
 		this.markerLayers[layerName] = this.markerLayers[iStatus];
