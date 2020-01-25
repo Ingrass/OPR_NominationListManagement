@@ -5,13 +5,13 @@
 // @author      @lokpro
 // @updateURL https://github.com/Ingrass/OPR_NominationListManagement/raw/master/OPR_NominationListManagement.user.js
 // @downloadURL https://github.com/Ingrass/OPR_NominationListManagement/raw/master/OPR_NominationListManagement.user.js
-// @version     0.5
+// @version     0.5.1
 // @grant       none
 // ==/UserScript==
 
 /*
-v0.5 18/Jan/2020
-- added map View
+v0.5.1 25/Jan/2020
+- cater for missing imgURL
 
 v0.4.5 16/Jan/2020
 - shows nominations submitted in past 14 days
@@ -70,8 +70,12 @@ NLM.MAP = {}; // map view
 NLM.css = {};
 
 NLM.imgUrlToHashId = function( imgUrl ){
-	return imgUrl.replace( /=.{1,10}$|[^a-zA-Z0-9]/g, '' ).slice(- 10).toLowerCase();
-}
+	if( imgUrl ){
+		return imgUrl.replace( /=.{1,10}$|[^a-zA-Z0-9]/g, '' ).slice(- 10).toLowerCase();
+	}else{
+		return "0";
+	}
+};
 
 NLM.appendCSS = function( css, toNode ){
 	var style = document.createElement("style");
